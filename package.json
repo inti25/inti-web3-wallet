@@ -21,6 +21,7 @@
     "@electron-forge/plugin-fuses": "^7.3.0",
     "@electron-forge/plugin-webpack": "^7.3.0",
     "@electron/fuses": "^1.7.0",
+    "@types/electron": "^1.6.10",
     "@types/react": "^18.2.65",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
@@ -46,8 +47,11 @@
   "dependencies": {
     "antd": "^5.15.2",
     "electron-squirrel-startup": "^1.0.0",
+    "ethers": "^6.11.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.3"
+    "react-router-dom": "^6.22.3",
+    "sqlite3": "^5.1.7",
+    "typeorm": "^0.3.20"
   }
 }

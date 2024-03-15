@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useEffect, useState} from "react"
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -6,7 +6,7 @@ import {
   UserOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons';
-import { Layout, Menu, Button, theme } from 'antd';
+import {Layout, Menu, Button, theme, Image} from 'antd';
 import './index.css'
 const { Header, Sider, Content } = Layout;
 
@@ -15,18 +15,27 @@ const Main = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  const ipcRenderer = (window as any).ipcRenderer;
+  useEffect(() => {
+    ipcRenderer.invoke('some-name', "someArgument").then((result: any) => {
+      // ...
+      console.log('result', result)
+    })
+  }, [])
+
   return (
     <Layout className={'main-container'}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         {/*<div className="demo-logo-vertical" />*/}
         <Menu
+          style={{ flex: "auto" }}
           theme="dark"
           mode="inline"
           defaultSelectedKeys={['1']}
           items={[
             {
               key: '1',
-              icon: <UserOutlined />,
+              icon: <img alt={"1"} width={24} height={24} src={'https://assets.coingecko.com/coins/images/825/standard/bnb-icon2_2x.png'} />,
               label: 'nav 1',
             },
             {
