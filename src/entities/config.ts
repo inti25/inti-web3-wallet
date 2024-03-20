@@ -7,3 +7,6 @@ export class Config {
   @Column()
   value: string
 }
+
+export const PASSWORD_KEY = 'password';
+export const MNEMONIC_KEY = 'mnemonic';

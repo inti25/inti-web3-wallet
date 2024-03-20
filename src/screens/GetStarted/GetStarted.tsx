@@ -26,12 +26,14 @@ const GetStarted = () => {
           <Typography.Title level={3}>
             “antd is an enterprise-class UI design language and React UI library.”
           </Typography.Title>
-          <Button type="primary" href="https://ant.design" target="_blank">
+          <Button type="primary" onClick={() =>{
+            navigate('/ImportMnemonic', {replace: true})
+          }}>
             Import Wallet
           </Button>
 
           <Button type="default" onClick={() =>{
-            navigate('/ImportMnemonic', {replace: true})
+            navigate('/CreateWallet', {replace: true})
           }}>
             Create New Wallet
           </Button>

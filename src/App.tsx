@@ -12,7 +12,7 @@ function App() {
             <Routes>
               <Route path={'/'} element={<GetStarted />} />
               <Route path={'/ImportMnemonic'} element={<ImportMnemonic />} />
-              <Route path={'/ImportMnemonic/:mnemonic'} element={<ImportMnemonic />} />
+              <Route path={'/CreateWallet'} element={<ImportMnemonic />} />
               <Route path={'/unlock'} element={<Unlock />} />
             </Routes>
           </Router>
