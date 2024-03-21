@@ -12,13 +12,15 @@ type FieldType = {
 };
 
 const ImportMnemonic = () => {
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   const [form] = Form.useForm();
   const ipcRenderer = (window as any).ipcRenderer;
   const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-    console.log('Success:', values);
     ipcRenderer.invoke(SAVE_PASSWORD_EVENT, values).then((result: any) => {
-      console.log('result', result)
+      if (result) {
+        navigate('/main');
+      }
     })
   };
 
