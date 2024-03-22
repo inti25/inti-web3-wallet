@@ -68,7 +68,6 @@ export class SqliteHelper {
       nw.rpcUrl = "";
       nw.explorerUrl = "https://etherscan.io";
       nw.image = "https://assets.coingecko.com/coins/images/279/standard/ethereum.png";
-      await this.networkRepository.save(nw);
     }
     return await this.networkRepository.find();
   }

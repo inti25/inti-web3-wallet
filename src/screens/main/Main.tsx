@@ -3,19 +3,23 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PlusOutlined,
-  CopyOutlined
+  CopyOutlined, MoreOutlined, EditOutlined
 } from '@ant-design/icons';
-import {Layout, Menu, Button, theme, Image, MenuProps, Flex, Select, Tooltip} from 'antd';
+import {Layout, Menu, Button, theme, Image, MenuProps, Flex, Select, Tooltip, Popover} from 'antd';
 import './index.css'
 import {GET_NETWORKS_EVENT, GET_PASSWORD_EVENT} from "../../utils/BridgeUtil";
 import {Network} from "../../entities/network";
+import AddNetworkModal from "../../modals/addNetworkModal";
 
 const {Header, Sider, Content} = Layout;
 
 const Main = () => {
   const ipcRenderer = (window as any).ipcRenderer;
+  const [isOpenAddNetWorkModal, setOpenAddNetWorkModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [networks, setNetworks] = useState([]);
+  const [openMoreMenu, setOpenMoreMenu] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(null);
   const {
     token: {colorBgContainer, borderRadiusLG},
   } = theme.useToken();
@@ -36,11 +40,24 @@ const Main = () => {
 
   const onClick: MenuProps['onClick'] = (e) => {
     console.log('click ', e);
+    if (e.key == '0') {
+      setOpenAddNetWorkModal(true)
+    }
   };
 
-  const handleChange = (value: string) => {
+  const onAccountChange = (value: string) => {
     console.log(`selected ${value}`);
   };
+
+  const moreMenu = (
+    <Flex vertical gap={"small"}>
+      <Button disabled={!selectedAccount} icon={<CopyOutlined/>}>Copy Address</Button>
+      <Button disabled={!selectedAccount} icon={<EditOutlined/>}>Edit Account</Button>
+      <Button icon={<PlusOutlined/>} onClick={() => {
+        setOpenMoreMenu(false)
+      }}>Add Account</Button>
+    </Flex>
+  );
 
   return (
     <Layout className={'main-container'}>
@@ -56,7 +73,7 @@ const Main = () => {
             return {
               key: item.id,
               icon: item.id == 0 ? item.image : <img alt={"1"} width={24} height={24} src={item.image}/>,
-              label: item.name
+              label: item.name,
             }
           })}
         />
@@ -81,21 +98,19 @@ const Main = () => {
           />
           <Select
             style={{flex: 1}}
-            defaultValue="lucy"
-            onChange={handleChange}
-            options={[
-              {value: 'jack', label: 'Jack'},
-              {value: 'lucy', label: 'Lucy'},
-              {value: 'Yiminghe', label: 'yiminghe'},
-              {value: 'disabled', label: 'Disabled', disabled: true},
-            ]}
+            onChange={onAccountChange}
+            options={[]}
           />
-          <Tooltip title="Copy Account Address">
+          <Popover
+            content={moreMenu}
+            trigger="click"
+            open={openMoreMenu}
+          >
             <Button
               type="text"
-              icon={<CopyOutlined/>}
+              icon={<MoreOutlined/>}
               onClick={() => {
-                console.log('Copy Account Address')
+                setOpenMoreMenu((prevState => !prevState))
               }}
               style={{
                 fontSize: '16px',
@@ -103,21 +118,8 @@ const Main = () => {
                 height: 64,
               }}
             />
-          </Tooltip>
-          <Tooltip title="Add Account">
-            <Button
-              type="text"
-              icon={<PlusOutlined/>}
-              onClick={() => {
-                console.log('Add Account')
-              }}
-              style={{
-                fontSize: '16px',
-                width: 64,
-                height: 64,
-              }}
-            />
-          </Tooltip>
+          </Popover>
+
         </Header>
         <Content
           style={{
@@ -131,6 +133,15 @@ const Main = () => {
           Content
         </Content>
       </Layout>
+      <AddNetworkModal
+        isOpen={isOpenAddNetWorkModal}
+        onAddNetworkSuccess={(nw => {
+          setOpenAddNetWorkModal(false)
+          loadNetworks()
+        })}
+        onCancel={() => {
+          setOpenAddNetWorkModal(false)
+        }}/>
     </Layout>
   )
 }
