@@ -5,9 +5,9 @@ import {
   PlusOutlined,
   CopyOutlined, MoreOutlined, EditOutlined
 } from '@ant-design/icons';
-import {Layout, Menu, Button, theme, Image, MenuProps, Flex, Select, Tooltip, Popover} from 'antd';
+import {Layout, Menu, Button, theme, MenuProps, Flex, Select, Tooltip, Popover} from 'antd';
 import './index.css'
-import {GET_NETWORKS_EVENT, GET_PASSWORD_EVENT} from "../../utils/BridgeUtil";
+import {GET_NETWORKS_EVENT} from "../../utils/BridgeUtil";
 import {Network} from "../../entities/network";
 import AddNetworkModal from "../../modals/addNetworkModal";
 
@@ -18,6 +18,7 @@ const Main = () => {
   const [isOpenAddNetWorkModal, setOpenAddNetWorkModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [networks, setNetworks] = useState([]);
+  const [currentNetwork, setCurrentNetWork] = useState<Network>();
   const [openMoreMenu, setOpenMoreMenu] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const {
@@ -32,6 +33,9 @@ const Main = () => {
       name: 'Add Network'
     })
     setNetworks(result);
+    if (result.length > 0) {
+      setCurrentNetWork(result[0]);
+    }
   }
 
   useEffect(() => {
@@ -39,9 +43,11 @@ const Main = () => {
   }, [])
 
   const onClick: MenuProps['onClick'] = (e) => {
-    console.log('click ', e);
     if (e.key == '0') {
       setOpenAddNetWorkModal(true)
+    } else {
+      const cur = networks.filter(n => n.id == Number(e.key))[0];
+      setCurrentNetWork(cur);
     }
   };
 
@@ -67,7 +73,7 @@ const Main = () => {
           style={{flex: "auto"}}
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={['1']}
+          selectedKeys={[String(currentNetwork ? currentNetwork.id : 1)]}
           onClick={onClick}
           items={networks.map((item: Network) => {
             return {
