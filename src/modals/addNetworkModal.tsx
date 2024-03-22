@@ -1,4 +1,4 @@
-import {Button, Form, FormProps, Input, InputNumber, Modal, Select} from "antd";
+import {App, Button, Form, FormProps, Input, InputNumber, Modal, Select, Space} from "antd";
 import React, {useEffect,useState} from "react";
 import {VMTYPE} from "../utils/constains";
 import {Network} from "../entities/network";
@@ -9,6 +9,7 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const ipcRenderer = (window as any).ipcRenderer;
+  const { message, notification, modal } = App.useApp();
   useEffect(() => {
     setIsModalOpen(props.isOpen)
   }, [props.isOpen])
@@ -16,9 +17,13 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
   const onFinish: FormProps<Network>["onFinish"] = async (values) => {
     console.log('onFinish', values);
     setLoading(true)
-    const result = await ipcRenderer.invoke(SAVE_NETWORKS_EVENT, values)
+    try {
+      const result = await ipcRenderer.invoke(SAVE_NETWORKS_EVENT, values)
+      props.onAddNetworkSuccess(result);
+    } catch (e) {
+      message.error(e.message)
+    }
     setLoading(false)
-    props.onAddNetworkSuccess(result);
   };
 
   const onFinishFailed: FormProps<Network>["onFinishFailed"] = (errorInfo) => {
@@ -63,6 +68,7 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
         <Form.Item<Network>
           label="Image"
           name="image"
+          rules={[{ type: 'url', warningOnly: true }]}
         >
           <Input />
         </Form.Item>
@@ -70,7 +76,7 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
         <Form.Item<Network>
           label="Public RPC"
           name="rpcUrl"
-          rules={[{ required: true, message: 'Please input public RPC' }]}
+          rules={[{ required: true, message: 'Please input public RPC' }, { type: 'url', warningOnly: true }]}
         >
           <Input />
         </Form.Item>
@@ -93,14 +99,20 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
         <Form.Item<Network>
           label="Explorer"
           name="explorerUrl"
+          rules={[{ type: 'url', warningOnly: true }]}
         >
           <Input />
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" htmlType="submit" loading={loading}>
-            Add Network
-          </Button>
+          <Space>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Add Network
+            </Button>
+            <Button htmlType="button" onClick={() => { form.resetFields() }}>
+              Reset
+            </Button>
+          </Space>
         </Form.Item>
       </Form>
     </Modal>

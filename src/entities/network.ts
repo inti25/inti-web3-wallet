@@ -11,18 +11,18 @@ export class Network {
   @Column()
   name: string
 
-  @Column()
+  @Column({nullable: true})
   image: string
 
   @Column()
   rpcUrl: string
 
-  @Column()
+  @Column({nullable: true})
   chainId: number
 
   @Column()
   currencySymbol: string
 
-  @Column()
+  @Column({nullable: true})
   explorerUrl: string
 }

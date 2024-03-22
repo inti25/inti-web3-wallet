@@ -3,23 +3,26 @@ import {Config, MNEMONIC_KEY, PASSWORD_KEY} from "../entities/config";
 import {Repository} from "typeorm/repository/Repository";
 import {comparePassword, encrypt, hashPassword} from "../utils/encryptionUtil";
 import {Network} from "../entities/network";
+import {Account} from "../entities/account";
 
 export class SqliteHelper {
   private configRepository: Repository<Config>;
   private networkRepository: Repository<Network>;
+  private accountRepository: Repository<Account>;
   constructor() {
     const dataSource = new DataSource({
       type: "sqlite",
       database: "data.db",
-      entities: [Config, Network],
+      entities: [Config, Network, Account],
       synchronize: true,
-      logging: true,
+      logging: false,
     })
     dataSource.initialize()
       .then(() => {
         console.log('database initialize done');
         this.configRepository = dataSource.getRepository(Config);
         this.networkRepository = dataSource.getRepository(Network);
+        this.accountRepository = dataSource.getRepository(Account);
       })
       .catch((error) => console.log(error))
   }
@@ -53,22 +56,16 @@ export class SqliteHelper {
     await this.configRepository.save(conf);
   }
 
+  async getMnemonic() {
+    const conf = await this.configRepository.findOneBy({key: MNEMONIC_KEY});
+    return conf.value;
+  }
+
   async saveNetwork(nw: Network) {
     await this.networkRepository.save(nw);
   }
 
   async getNetworks() {
-    const result = await this.networkRepository.find();
-    if (result.length == 0) {
-      const nw = new Network();
-      nw.vmType = "evm";
-      nw.currencySymbol = "ETH";
-      nw.chainId = 1;
-      nw.name = "Ethereum";
-      nw.rpcUrl = "";
-      nw.explorerUrl = "https://etherscan.io";
-      nw.image = "https://assets.coingecko.com/coins/images/279/standard/ethereum.png";
-    }
     return await this.networkRepository.find();
   }
 
@@ -77,5 +74,18 @@ export class SqliteHelper {
       id: id,
     })
     await this.networkRepository.remove(removeItem)
+  }
+
+  async getAccounts(vmType: string) {
+    return await this.accountRepository.findBy({vmType : vmType});
+  }
+
+  async createAccount(vmType: string, accountName: string) {
+    const index = await this.accountRepository.countBy({vmType : vmType});
+    const newAccount = new Account();
+    newAccount.accountIndex = index;
+    newAccount.vmType = vmType;
+    newAccount.name = accountName;
+    return await this.accountRepository.save(newAccount);
   }
 }

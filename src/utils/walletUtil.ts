@@ -1,15 +1,16 @@
 import type { mnemonicToSeedSync as mnemonicToSeedSyncT } from "ethereum-cryptography/bip39";
-const { bufferToHex } = require("@nomicfoundation/ethereumjs-util");
 import type { HDKey as HDKeyT } from "ethereum-cryptography/hdkey";
-import { ethers } from "ethers";
+import * as bip39 from "bip39";
+import {derivePath} from "ed25519-hd-key";
+import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 
-export function getEtherAccount(mnemonic: string, index: number) {
+export function getEtherPrivateKey(mnemonic: string, index: number) {
   const privatKey = deriveKeyFromMnemonicAndPath(
     mnemonic,
     `m/44'/60'/0'/0/${index}`,
     ""
   );
-  return new ethers.Wallet(bufferToHex(privatKey));
+  return Buffer.from(privatKey).toString('hex');
 }
 
 export function deriveKeyFromMnemonicAndPath(
@@ -35,4 +36,16 @@ export function deriveKeyFromMnemonicAndPath(
   return derived.privateKey === null
     ? undefined
     : Buffer.from(derived.privateKey);
+}
+
+export async function getSolanaPrivateKey(mnemonic: string, index: number) {
+  const seed = await bip39.mnemonicToSeed(mnemonic);
+  const seedBuffer = Buffer.from(seed).toString('hex');
+  const path44Change = `m/44'/501'/${index}'/0'`;
+  return derivePath(path44Change, seedBuffer).key;
+}
+
+export async function getSeedSuiPrivateKey(mnemonic: string, index: number) {
+  const keypair_ed25519 = Ed25519Keypair.deriveKeypair(mnemonic, `m/44'/784'/${index}'/0'/0'`);
+  return keypair_ed25519.getSecretKey();
 }

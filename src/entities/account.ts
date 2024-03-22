@@ -13,6 +13,10 @@ export class Account {
 
   @Column()
   accountIndex: number
+
+  address: string
+
+  privateKey : string;
 }
 
 export const networkType = ["evm", "solana"]

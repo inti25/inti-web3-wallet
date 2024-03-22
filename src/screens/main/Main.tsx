@@ -7,20 +7,24 @@ import {
 } from '@ant-design/icons';
 import {Layout, Menu, Button, theme, MenuProps, Flex, Select, Tooltip, Popover} from 'antd';
 import './index.css'
-import {GET_NETWORKS_EVENT} from "../../utils/BridgeUtil";
+import {GET_ACCOUNTS_EVENT, GET_NETWORKS_EVENT} from "../../utils/BridgeUtil";
 import {Network} from "../../entities/network";
 import AddNetworkModal from "../../modals/addNetworkModal";
+import {Account} from "../../entities/account";
+import AddNewAccount from "../../modals/addNewAccount";
 
 const {Header, Sider, Content} = Layout;
 
 const Main = () => {
   const ipcRenderer = (window as any).ipcRenderer;
   const [isOpenAddNetWorkModal, setOpenAddNetWorkModal] = useState(false);
+  const [isOpenAddAccountModal, setOpenAddAccountModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [networks, setNetworks] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [currentNetwork, setCurrentNetWork] = useState<Network>();
+  const [currentAccount, setCurrentAccount] = useState<Account>();
   const [openMoreMenu, setOpenMoreMenu] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState(null);
   const {
     token: {colorBgContainer, borderRadiusLG},
   } = theme.useToken();
@@ -42,6 +46,20 @@ const Main = () => {
     loadNetworks();
   }, [])
 
+  async function loadAccounts() {
+    const _accounts = await ipcRenderer.invoke(GET_ACCOUNTS_EVENT, currentNetwork.vmType);
+    setAccounts(_accounts);
+    if (_accounts.length > 0) {
+      setCurrentAccount(_accounts[0]);
+    }
+  }
+
+  useEffect(() => {
+    if (currentNetwork) {
+      loadAccounts();
+    }
+  }, [currentNetwork])
+
   const onClick: MenuProps['onClick'] = (e) => {
     if (e.key == '0') {
       setOpenAddNetWorkModal(true)
@@ -52,14 +70,16 @@ const Main = () => {
   };
 
   const onAccountChange = (value: string) => {
-    console.log(`selected ${value}`);
+    const acc = accounts.filter(item => item.address == value)[0];
+    setCurrentAccount(acc)
   };
 
   const moreMenu = (
     <Flex vertical gap={"small"}>
-      <Button disabled={!selectedAccount} icon={<CopyOutlined/>}>Copy Address</Button>
-      <Button disabled={!selectedAccount} icon={<EditOutlined/>}>Edit Account</Button>
+      <Button disabled={!currentAccount} icon={<CopyOutlined/>}>Copy Address</Button>
+      <Button disabled={!currentAccount} icon={<EditOutlined/>}>Edit Account</Button>
       <Button icon={<PlusOutlined/>} onClick={() => {
+        setOpenAddAccountModal(true)
         setOpenMoreMenu(false)
       }}>Add Account</Button>
     </Flex>
@@ -105,7 +125,12 @@ const Main = () => {
           <Select
             style={{flex: 1}}
             onChange={onAccountChange}
-            options={[]}
+            options={accounts.map(item => {
+              return {
+                value: item.address,
+                label: `${item.name}: ${item.address}`
+              }
+            })}
           />
           <Popover
             content={moreMenu}
@@ -148,6 +173,18 @@ const Main = () => {
         onCancel={() => {
           setOpenAddNetWorkModal(false)
         }}/>
+      <AddNewAccount
+        isOpen={isOpenAddAccountModal}
+        onCancel={() => {
+          setOpenAddAccountModal(false)
+        }}
+        onSuccess={() => {
+          setOpenAddAccountModal(false)
+          loadAccounts()
+        }}
+        nameDefault={`Account ${accounts.length}`}
+        vmType={currentNetwork?.vmType}
+      />
     </Layout>
   )
 }
