@@ -123,7 +123,9 @@ const Main = () => {
             }}
           />
           <Select
+            size={"large"}
             style={{flex: 1}}
+            value={currentAccount?.address}
             onChange={onAccountChange}
             options={accounts.map(item => {
               return {

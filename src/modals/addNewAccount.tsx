@@ -15,6 +15,10 @@ const AddNewAccount = (props: {vmType: string, nameDefault: string, isOpen: bool
     setIsModalOpen(props.isOpen)
   }, [props.isOpen])
 
+  useEffect(() => {
+    form.setFieldValue("accountName", props.nameDefault)
+  }, [props.nameDefault])
+
   const onFinish: FormProps["onFinish"] = async (values) => {
     setLoading(true)
     values.vmType = props.vmType;
