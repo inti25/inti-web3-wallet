@@ -97,6 +97,14 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
         </Form.Item>
 
         <Form.Item<Network>
+          label="Currency Image URL"
+          name="currencyImage"
+          rules={[{ type: 'url', warningOnly: true }]}
+        >
+          <Input />
+        </Form.Item>
+
+        <Form.Item<Network>
           label="Explorer"
           name="explorerUrl"
           rules={[{ type: 'url', warningOnly: true }]}

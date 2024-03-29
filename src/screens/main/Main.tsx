@@ -5,13 +5,14 @@ import {
   PlusOutlined,
   CopyOutlined, MoreOutlined, EditOutlined
 } from '@ant-design/icons';
-import {Layout, Menu, Button, theme, MenuProps, Flex, Select, Tooltip, Popover} from 'antd';
+import {Layout, Menu, Button, theme, MenuProps, Flex, Select, Tooltip, Popover, Avatar} from 'antd';
 import './index.css'
 import {GET_ACCOUNTS_EVENT, GET_NETWORKS_EVENT} from "../../utils/BridgeUtil";
 import {Network} from "../../entities/network";
 import AddNetworkModal from "../../modals/addNetworkModal";
 import {Account} from "../../entities/account";
 import AddNewAccount from "../../modals/addNewAccount";
+import TokenList from "../tokenlist/tokenList";
 
 const {Header, Sider, Content} = Layout;
 
@@ -98,7 +99,7 @@ const Main = () => {
           items={networks.map((item: Network) => {
             return {
               key: item.id,
-              icon: item.id == 0 ? item.image : <img alt={"1"} width={24} height={24} src={item.image}/>,
+              icon: item.id == 0 ? item.image : <Avatar src={item.image}>{item.name[0]}</Avatar>,
               label: item.name,
             }
           })}
@@ -163,7 +164,7 @@ const Main = () => {
             borderRadius: borderRadiusLG,
           }}
         >
-          Content
+          <TokenList account={currentAccount} network={currentNetwork}/>
         </Content>
       </Layout>
       <AddNetworkModal

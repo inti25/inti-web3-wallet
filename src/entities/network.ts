@@ -1,4 +1,5 @@
-import {Column, Entity, PrimaryGeneratedColumn} from "typeorm"
+import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm"
+import {Token} from "./token";
 
 @Entity()
 export class Network {
@@ -24,5 +25,13 @@ export class Network {
   currencySymbol: string
 
   @Column({nullable: true})
+  currencyImage: string
+
+  @Column({nullable: true})
   explorerUrl: string
+
+  @OneToMany(() => Token, (token) => token.network, {
+    cascade: true
+  }) // note: we will create network property in the Token class below
+  tokens: Token[]
 }

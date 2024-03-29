@@ -4,16 +4,18 @@ import {Repository} from "typeorm/repository/Repository";
 import {comparePassword, encrypt, hashPassword} from "../utils/encryptionUtil";
 import {Network} from "../entities/network";
 import {Account} from "../entities/account";
+import {Token} from "../entities/token";
 
 export class SqliteHelper {
   private configRepository: Repository<Config>;
   private networkRepository: Repository<Network>;
   private accountRepository: Repository<Account>;
+  private tokenRepository: Repository<Token>;
   constructor() {
     const dataSource = new DataSource({
       type: "sqlite",
       database: "data.db",
-      entities: [Config, Network, Account],
+      entities: [Network,Token, Account, Config],
       synchronize: true,
       logging: false,
     })
@@ -23,6 +25,7 @@ export class SqliteHelper {
         this.configRepository = dataSource.getRepository(Config);
         this.networkRepository = dataSource.getRepository(Network);
         this.accountRepository = dataSource.getRepository(Account);
+        this.tokenRepository = dataSource.getRepository(Token);
       })
       .catch((error) => console.log(error))
   }
@@ -87,5 +90,17 @@ export class SqliteHelper {
     newAccount.vmType = vmType;
     newAccount.name = accountName;
     return await this.accountRepository.save(newAccount);
+  }
+
+  async getTokens(network: Network) {
+    return await this.tokenRepository.findBy({network: network});
+  }
+
+  async saveToken(token: Token) {
+    await this.tokenRepository.save(token);
+  }
+
+  async removeToken(removeItem: Token) {
+    await this.tokenRepository.remove(removeItem);
   }
 }
