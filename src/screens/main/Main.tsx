@@ -66,6 +66,7 @@ const Main = () => {
       setOpenAddNetWorkModal(true)
     } else {
       const cur = networks.filter(n => n.id == Number(e.key))[0];
+      setCurrentAccount(null);
       setCurrentNetWork(cur);
     }
   };

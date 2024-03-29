@@ -2,11 +2,12 @@ import React, {useEffect, useState} from "react"
 import {Network} from "../../entities/network";
 import {Account} from "../../entities/account";
 import {Avatar, Button, Flex, Image, Space, Table, TableProps} from "antd";
-import {getNativeTokenInfo, getTokenBalance} from "../../utils/tokenUtils";
+import {getNativeTokenInfo, getSolanaSPLToken, getTokenBalance} from "../../utils/tokenUtils";
 import {formatCurrencyUSD} from "../../utils/formatUtil";
 import AddTokenModal from "../../modals/addTokenModal";
 import {GET_NETWORKS_EVENT, GET_TOKENS_EVENT} from "../../utils/BridgeUtil";
 import {Token} from "../../entities/token";
+import {VMTYPE} from "../../utils/constains";
 
 
 const TokenList = (props: { network: Network, account: Account }) => {
@@ -52,17 +53,28 @@ const TokenList = (props: { network: Network, account: Account }) => {
 
   useEffect(() => {
     if (props.network && props.account) {
+      console.log('props.network', props.network.name)
+      console.log('props.account', props.account.address)
       getTokens();
+    } else {
+      setTokens([]);
     }
   }, [props.network, props.account])
 
   async function getTokens() {
-    const result = await ipcRenderer.invoke(GET_TOKENS_EVENT, props.network);
-    for (let i = 0; i < result.length; i++) {
-      result[i].key = result[i].address;
-      result[i].balance = await getTokenBalance(props.account.address, result[i], props.network);
+    if (props.network.vmType == VMTYPE.SOLANA) {
+      const sol = await getNativeTokenInfo(props.account.address, props.network)
+      setTokens([sol])
+      const tokens = await getSolanaSPLToken(props.account.address, props.network.rpcUrl);
+      setTokens([sol, ...tokens])
+    } else if (props.network.vmType == VMTYPE.EVM) {
+      const result = await ipcRenderer.invoke(GET_TOKENS_EVENT, props.network);
+      for (let i = 0; i < result.length; i++) {
+        result[i].key = result[i].address;
+        result[i].balance = await getTokenBalance(props.account.address, result[i], props.network);
+      }
+      setTokens([await getNativeTokenInfo(props.account.address, props.network), ...result])
     }
-    setTokens([await getNativeTokenInfo(props.account.address, props.network), ...result])
   }
 
   return (
