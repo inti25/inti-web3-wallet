@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react"
 import {Network} from "../../entities/network";
 import {Account} from "../../entities/account";
-import {Avatar, Button, Flex, Image, Space, Table, TableProps} from "antd";
+import {Avatar, Button, Flex, Space, Table, TableProps} from "antd";
+import {ZeroAddress} from "ethers";
 import {getNativeTokenInfo, getSolanaSPLToken, getTokenBalance} from "../../utils/tokenUtils";
 import {formatCurrencyUSD} from "../../utils/formatUtil";
 import AddTokenModal from "../../modals/addTokenModal";
-import {GET_NETWORKS_EVENT, GET_TOKENS_EVENT} from "../../utils/BridgeUtil";
+import {DELETE_TOKEN_EVENT, GET_TOKENS_EVENT} from "../../utils/BridgeUtil";
 import {Token} from "../../entities/token";
 import {VMTYPE} from "../../utils/constains";
 
@@ -21,7 +22,7 @@ const TokenList = (props: { network: Network, account: Account }) => {
       dataIndex: 'image',
       align: 'center',
       render: (_, record) => (
-        <Avatar  key={record.image} size={"default"} src={record.image}>{record.symbol}</Avatar>
+        <Avatar key={record.image} size={"default"} src={record.image}>{record.symbol}</Avatar>
       )
     },
     {
@@ -43,13 +44,20 @@ const TokenList = (props: { network: Network, account: Account }) => {
       key: 'action',
       align: 'right',
       render: (_, record) => (
-        <Space size="middle">
-          <a>Transfer</a>
+        <Space size={"middle"}>
+          <Flex justify={"space-between"}>
+            <Button type="link">Transfer</Button>
+            { record.address && <Button  type="text" onClick={() => {deleteToken(record)}} danger>Hide</Button>}
+          </Flex>
         </Space>
       ),
     },
   ];
 
+  async function deleteToken(token: Token) {
+    await ipcRenderer.invoke(DELETE_TOKEN_EVENT, token);
+    getTokens();
+  }
 
   useEffect(() => {
     if (props.network && props.network.rpcUrl && props.account && props.account.address) {
@@ -91,7 +99,9 @@ const TokenList = (props: { network: Network, account: Account }) => {
         }}/>
       <Flex justify={"space-between"} style={{marginBottom: 16}}>
         <div>TokenList</div>
-        <Button onClick={() => {setOpenAddTokenModal(true)}}>Import Token</Button>
+        <Button onClick={() => {
+          setOpenAddTokenModal(true)
+        }}>Import Token</Button>
       </Flex>
 
       <Table columns={columns} dataSource={tokens}/>

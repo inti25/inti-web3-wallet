@@ -70,11 +70,18 @@ export async function getSolanaSPLToken(walletAddress: string, rpc: string) {
     token.balance = formatUnits(info.amount, mint.decimals);
     result.push(token)
     const tokenInfo = await getSolanaTokenInfo(connection, mint.address)
-    console.log('tokenInfo', tokenInfo);
     if (tokenInfo) {
       token.name = tokenInfo.name
       token.symbol = tokenInfo.symbol
-      token.image = tokenInfo.uri
+      try {
+        const uri = await (await fetch(tokenInfo.uri)).text()
+        const infoUri = JSON.parse(uri);
+        token.image = infoUri.image;
+        token.name = infoUri.name
+        token.symbol = infoUri.symbol
+      } catch (e) {
+        console.log(e);
+      }
     } else {
       token.name = "Unrecognized"
       token.symbol = "Unrecognized"
