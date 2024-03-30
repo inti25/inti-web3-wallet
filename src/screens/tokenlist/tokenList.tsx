@@ -52,7 +52,7 @@ const TokenList = (props: { network: Network, account: Account }) => {
 
 
   useEffect(() => {
-    if (props.network && props.account) {
+    if (props.network && props.network.rpcUrl && props.account && props.account.address) {
       console.log('props.network', props.network.name)
       console.log('props.account', props.account.address)
       getTokens();

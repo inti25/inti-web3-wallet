@@ -23,8 +23,8 @@ const Main = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [networks, setNetworks] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [currentNetwork, setCurrentNetWork] = useState<Network>();
-  const [currentAccount, setCurrentAccount] = useState<Account>();
+  const [currentNetwork, setCurrentNetWork] = useState<Network>(null);
+  const [currentAccount, setCurrentAccount] = useState<Account>(null);
   const [openMoreMenu, setOpenMoreMenu] = useState(false);
   const {
     token: {colorBgContainer, borderRadiusLG},
@@ -38,7 +38,7 @@ const Main = () => {
       name: 'Add Network'
     })
     setNetworks(result);
-    if (result.length > 0) {
+    if (result.length > 0 && currentAccount == null) {
       setCurrentNetWork(result[0]);
     }
   }
@@ -50,7 +50,7 @@ const Main = () => {
   async function loadAccounts() {
     const _accounts = await ipcRenderer.invoke(GET_ACCOUNTS_EVENT, currentNetwork.vmType);
     setAccounts(_accounts);
-    if (_accounts.length > 0) {
+    if (_accounts.length > 0 && currentAccount == null) {
       setCurrentAccount(_accounts[0]);
     }
   }
@@ -172,6 +172,7 @@ const Main = () => {
         isOpen={isOpenAddNetWorkModal}
         onAddNetworkSuccess={(nw => {
           setOpenAddNetWorkModal(false)
+          setNetworks([...networks, nw]);
           loadNetworks()
         })}
         onCancel={() => {
@@ -182,8 +183,9 @@ const Main = () => {
         onCancel={() => {
           setOpenAddAccountModal(false)
         }}
-        onSuccess={() => {
+        onSuccess={(acc) => {
           setOpenAddAccountModal(false)
+          setCurrentAccount(acc);
           loadAccounts()
         }}
         nameDefault={`Account ${accounts.length}`}
