@@ -18,6 +18,7 @@ const {Header, Sider, Content} = Layout;
 
 const Main = () => {
   const ipcRenderer = (window as any).ipcRenderer;
+  const clipboard = (window as any).clipboard;
   const [isOpenAddNetWorkModal, setOpenAddNetWorkModal] = useState(false);
   const [isOpenAddAccountModal, setOpenAddAccountModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -78,7 +79,10 @@ const Main = () => {
 
   const moreMenu = (
     <Flex vertical gap={"small"}>
-      <Button disabled={!currentAccount} icon={<CopyOutlined/>}>Copy Address</Button>
+      <Button disabled={!currentAccount} onClick={() => {
+        clipboard.writeText(currentAccount?.address);
+        setOpenMoreMenu(false);
+      }} icon={<CopyOutlined/>}>Copy Address</Button>
       <Button disabled={!currentAccount} icon={<EditOutlined/>}>Edit Account</Button>
       <Button icon={<PlusOutlined/>} onClick={() => {
         setOpenAddAccountModal(true)
