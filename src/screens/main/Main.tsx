@@ -185,8 +185,9 @@ const Main = () => {
         }}
         onSuccess={(acc) => {
           setOpenAddAccountModal(false)
-          setCurrentAccount(acc);
-          loadAccounts()
+          loadAccounts().then(() => {
+            setCurrentAccount(acc);
+          })
         }}
         nameDefault={`Account ${accounts.length}`}
         vmType={currentNetwork?.vmType}

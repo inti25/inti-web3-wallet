@@ -130,7 +130,11 @@ function registerBridgeEvent() {
   })
 
   ipcMain.handle(SAVE_ACCOUNT_EVENT, async (event, args) => {
-    return await dbHelper.createAccount(args.vmType, args.accountName);
+    const acc =  await dbHelper.createAccount(args.vmType, args.accountName);
+    const {privateKey, address} = await getAddressKey(args.vmType, acc.accountIndex);
+    acc.privateKey = privateKey;
+    acc.address = address;
+    return acc;
   })
 
   ipcMain.handle(GET_TOKENS_EVENT, async (event, network) => {
