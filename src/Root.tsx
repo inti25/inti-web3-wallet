@@ -17,7 +17,7 @@ root.render(
     // 2. Combine dark algorithm and compact algorithm
     // algorithm: [theme.darkAlgorithm, theme.compactAlgorithm],
   }}>
-    <AntApp>
+    <AntApp notification={{placement: "bottom"}}>
       <App />
     </AntApp>
   </ConfigProvider>

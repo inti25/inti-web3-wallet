@@ -3,11 +3,11 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PlusOutlined,
-  CopyOutlined, MoreOutlined, EditOutlined
+  CopyOutlined, MoreOutlined, EditOutlined, SettingOutlined, DeleteOutlined
 } from '@ant-design/icons';
-import {Layout, Menu, Button, theme, MenuProps, Flex, Select, Tooltip, Popover, Avatar} from 'antd';
+import {Layout, Menu, Button, theme, MenuProps, Flex, Select, Tooltip, Popover, Avatar, Dropdown, App} from 'antd';
 import './index.css'
-import {GET_ACCOUNTS_EVENT, GET_NETWORKS_EVENT} from "../../utils/BridgeUtil";
+import {DELETE_NETWORKS_EVENT, GET_ACCOUNTS_EVENT, GET_NETWORKS_EVENT} from "../../utils/BridgeUtil";
 import {Network} from "../../entities/network";
 import AddNetworkModal from "../../modals/addNetworkModal";
 import {Account} from "../../entities/account";
@@ -19,17 +19,83 @@ const {Header, Sider, Content} = Layout;
 const Main = () => {
   const ipcRenderer = (window as any).ipcRenderer;
   const clipboard = (window as any).clipboard;
+  const { message, notification, modal } = App.useApp();
   const [isOpenAddNetWorkModal, setOpenAddNetWorkModal] = useState(false);
+  const [isOpenEditNetworkModal, setOpenEditNetworkModal] = useState(false);
   const [isOpenAddAccountModal, setOpenAddAccountModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [networks, setNetworks] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [currentNetwork, setCurrentNetWork] = useState<Network>(null);
   const [currentAccount, setCurrentAccount] = useState<Account>(null);
-  const [openMoreMenu, setOpenMoreMenu] = useState(false);
   const {
     token: {colorBgContainer, borderRadiusLG},
   } = theme.useToken();
+
+  const menuItems: MenuProps['items'] = [
+    {
+      label: 'Edit Network',
+      key: '0',
+      icon: <EditOutlined />,
+      disabled: !currentNetwork,
+      onClick: handleOnclickMenuItem
+    },
+    {
+      label: 'Delete Network',
+      key: '1',
+      danger: true,
+      disabled: !currentNetwork,
+      icon: <DeleteOutlined />,
+      onClick: handleOnclickMenuItem
+    },
+  ];
+
+  const accMenuItem : MenuProps['items'] = [
+    {
+      label: 'Copy Address',
+      key: '3',
+      icon: <CopyOutlined />,
+      disabled: !currentAccount,
+      onClick: handleOnclickMenuItem
+    },
+    {
+      label: 'Edit Account',
+      key: '4',
+      disabled: !currentAccount,
+      icon: <EditOutlined />,
+      onClick: handleOnclickMenuItem
+    },
+    {
+      label: 'Add Account',
+      key: '5',
+      icon: <PlusOutlined />,
+      onClick: handleOnclickMenuItem
+    },
+  ];
+
+  async function handleOnclickMenuItem(info : any) {
+    console.log('handleOnclickMenuItem', info)
+    switch (info.key) {
+      case '0':
+        setOpenEditNetworkModal(true);
+        break;
+      case '1':
+        await ipcRenderer.invoke(DELETE_NETWORKS_EVENT, currentNetwork?.id);
+        setCurrentNetWork(null);
+        setCurrentAccount(null);
+        loadNetworks();
+        break;
+      case '3':
+        clipboard.writeText(currentAccount?.address);
+        message.success('Address is copied to clipboard!');
+        break;
+      case '5':
+        setOpenAddAccountModal(true);
+        break;
+      default:
+        break;
+    }
+  }
 
   async function loadNetworks() {
     const result = await ipcRenderer.invoke(GET_NETWORKS_EVENT, null);
@@ -77,20 +143,6 @@ const Main = () => {
     setCurrentAccount(acc)
   };
 
-  const moreMenu = (
-    <Flex vertical gap={"small"}>
-      <Button disabled={!currentAccount} onClick={() => {
-        clipboard.writeText(currentAccount?.address);
-        setOpenMoreMenu(false);
-      }} icon={<CopyOutlined/>}>Copy Address</Button>
-      <Button disabled={!currentAccount} icon={<EditOutlined/>}>Edit Account</Button>
-      <Button icon={<PlusOutlined/>} onClick={() => {
-        setOpenAddAccountModal(true)
-        setOpenMoreMenu(false)
-      }}>Add Account</Button>
-    </Flex>
-  );
-
   return (
     <Layout className={'main-container'}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
@@ -128,6 +180,30 @@ const Main = () => {
               height: 64,
             }}
           />
+          <div style={{flex: 1}}>{currentNetwork?.name}</div>
+          <Dropdown menu={{ items: menuItems }} trigger={['click']}>
+            <Button
+              type="text"
+              icon={<SettingOutlined />}
+              style={{
+                fontSize: '16px',
+                width: 64,
+                height: 64,
+              }}
+            />
+          </Dropdown>
+        </Header>
+        <div
+          style={{
+            margin: '24px 16px 0 16px',
+            paddingLeft: 24,
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
           <Select
             size={"large"}
             style={{flex: 1}}
@@ -140,26 +216,18 @@ const Main = () => {
               }
             })}
           />
-          <Popover
-            content={moreMenu}
-            trigger="click"
-            open={openMoreMenu}
-          >
+          <Dropdown menu={{ items: accMenuItem }} trigger={['click']}>
             <Button
               type="text"
               icon={<MoreOutlined/>}
-              onClick={() => {
-                setOpenMoreMenu((prevState => !prevState))
-              }}
               style={{
                 fontSize: '16px',
                 width: 64,
                 height: 64,
               }}
             />
-          </Popover>
-
-        </Header>
+          </Dropdown>
+        </div>
         <Content
           style={{
             margin: '24px 16px',
@@ -181,6 +249,18 @@ const Main = () => {
         })}
         onCancel={() => {
           setOpenAddNetWorkModal(false)
+        }}/>
+      <AddNetworkModal
+        isOpen={isOpenEditNetworkModal}
+        network={currentNetwork}
+        onAddNetworkSuccess={(nw => {
+          setOpenEditNetworkModal(false)
+          loadNetworks().then(() => {
+            setCurrentNetWork(nw);
+          })
+        })}
+        onCancel={() => {
+          setOpenEditNetworkModal(false)
         }}/>
       <AddNewAccount
         isOpen={isOpenAddAccountModal}

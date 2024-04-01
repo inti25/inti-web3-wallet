@@ -4,7 +4,7 @@ import {VMTYPE} from "../utils/constains";
 import {Network} from "../entities/network";
 import {SAVE_NETWORKS_EVENT} from "../utils/BridgeUtil";
 
-const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNetworkSuccess: (nw: Network) => void}) => {
+const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNetworkSuccess: (nw: Network) => void, network? :Network}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -18,6 +18,9 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
     console.log('onFinish', values);
     setLoading(true)
     try {
+      if (props.network) {
+        values.id = props.network.id;
+      }
       const result = await ipcRenderer.invoke(SAVE_NETWORKS_EVENT, values)
       props.onAddNetworkSuccess(result);
     } catch (e) {
@@ -37,10 +40,10 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
   }
 
   return (
-    <Modal title="Add Network" open={isModalOpen} onCancel={props.onCancel} footer={null}>
+    <Modal title={props.network ? "Edit Network" : "Add Network"} open={isModalOpen} onCancel={props.onCancel} footer={null}>
       <Form
         name="mnemonicForm"
-        initialValues={{
+        initialValues={ props.network ? props.network : {
           vmType: VMTYPE.EVM
         }}
         form={form}
@@ -51,7 +54,7 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
         autoComplete="off"
       >
         <Form.Item<Network> name={"vmType"} label="VM Type">
-          <Select defaultValue={VMTYPE.EVM} onChange={onTypeChange}>
+          <Select onChange={onTypeChange}>
             <Select.Option value={VMTYPE.EVM}>{VMTYPE.EVM}</Select.Option>
             <Select.Option value={VMTYPE.SOLANA}>{VMTYPE.SOLANA}</Select.Option>
           </Select>
@@ -115,7 +118,7 @@ const AddNetworkModal = (props: {isOpen : boolean, onCancel: () => void, onAddNe
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
           <Space>
             <Button type="primary" htmlType="submit" loading={loading}>
-              Add Network
+              {props.network ? "Save" : "Add Network"}
             </Button>
             <Button htmlType="button" onClick={() => { form.resetFields() }}>
               Reset
