@@ -5,6 +5,7 @@ import {Avatar, Button, Flex, Space, Table, TableProps} from "antd";
 import {getNativeTokenInfo, getSolanaSPLToken, getTokenBalance} from "../../utils/tokenUtils";
 import {formatCurrencyUSD} from "../../utils/formatUtil";
 import AddTokenModal from "../../modals/addTokenModal";
+import TransferModal from "../../modals/transferModal";
 import {DELETE_TOKEN_EVENT, GET_TOKENS_EVENT} from "../../utils/BridgeUtil";
 import {Token} from "../../entities/token";
 import {VMTYPE} from "../../utils/constains";
@@ -15,6 +16,8 @@ const TokenList = (props: { network: Network, account: Account }) => {
   const ipcRenderer = (window as any).ipcRenderer;
   const [tokens, setTokens] = useState([]);
   const [openAddTokenModal, setOpenAddTokenModal] = useState(false);
+  const [transferToken, setTransferToken] = useState<Token>(null);
+  const [isOpenTransferModal, setTransferModel] = useState(false);
 
   const columns: TableProps<Token>['columns'] = [
     {
@@ -48,7 +51,10 @@ const TokenList = (props: { network: Network, account: Account }) => {
       render: (_, record) => (
         <Space size={"middle"}>
           <Flex justify={"space-between"}>
-            <Button type="link">Transfer</Button>
+            <Button type="link" onClick={() => {
+              setTransferToken(record);
+              setTransferModel(true);
+            }}>Transfer</Button>
             { record.address && props.network.vmType == VMTYPE.EVM && <Button  type="text" onClick={() => {deleteToken(record)}} danger>Hide</Button>}
           </Flex>
         </Space>
@@ -89,6 +95,7 @@ const TokenList = (props: { network: Network, account: Account }) => {
 
   return (
     <div>
+      <TransferModal network={props.network} account={props.account} token={transferToken} isOpen={isOpenTransferModal} onCancel={() => {setTransferModel(false)}} />
       <AddTokenModal
         isOpen={openAddTokenModal}
         network={props.network}

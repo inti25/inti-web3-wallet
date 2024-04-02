@@ -244,7 +244,6 @@ const Main = () => {
         isOpen={isOpenAddNetWorkModal}
         onAddNetworkSuccess={(nw => {
           setOpenAddNetWorkModal(false)
-          setNetworks([...networks, nw]);
           loadNetworks()
         })}
         onCancel={() => {
