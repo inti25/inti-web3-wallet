@@ -22,10 +22,24 @@ export async function getTokenInfo(address: string,  network: Network) {
 export async function getTokenBalance(walletAddress: string, token: Token, network: Network) {
   if (network.vmType == VMTYPE.EVM) {
     const provider = new ethers.JsonRpcProvider(network.rpcUrl);
-    const contract = new ethers.Contract(token.address, Abis.ERC20, provider);
-    return formatUnits(await contract.balanceOf(walletAddress), token.decimal);
+    if (token.address) {
+      const contract = new ethers.Contract(token.address, Abis.ERC20, provider);
+      return String(await contract.balanceOf(walletAddress));
+    } else {
+      return String(await provider.getBalance(walletAddress));
+    }
   } else if (network.vmType == VMTYPE.SOLANA) {
-    return '0';
+    const connection = new Connection(network.rpcUrl);
+    if (token.address) {
+      try {
+        const info = await getAccount(connection, new PublicKey(token.tokenAccount));
+        return String(info.amount);
+      } catch (e) {
+        return '0';
+      }
+    } else {
+      return String(await connection.getBalance(new PublicKey(walletAddress)))
+    }
   }
   return '0';
 }
@@ -39,11 +53,11 @@ export async function getNativeTokenInfo(walletAddress: string, network: Network
     token.image = network.currencyImage;
     token.decimal = 18;
     const provider = new ethers.JsonRpcProvider(network.rpcUrl);
-    token.balance = formatEther(await provider.getBalance(walletAddress));
+    token.balance = String(await provider.getBalance(walletAddress));
   } else if (network.vmType == VMTYPE.SOLANA) {
     const SOLANA_CONNECTION = new Connection(network.rpcUrl);
     const balance = await SOLANA_CONNECTION.getBalance(new PublicKey(walletAddress));
-    token.balance = balance / LAMPORTS_PER_SOL;
+    token.balance = String(balance);
     token.key = ZeroAddress;
     token.name = network.currencySymbol;
     token.symbol = network.currencySymbol;
@@ -67,7 +81,8 @@ export async function getSolanaSPLToken(walletAddress: string, rpc: string) {
     token.decimal = mint.decimals;
     token.address = mint.address.toBase58();
     token.key = mint.address.toBase58();
-    token.balance = formatUnits(info.amount, mint.decimals);
+    token.balance = info.amount;
+    token.tokenAccount = tokenAccs.value[i].pubkey.toBase58();
     result.push(token)
     const tokenInfo = await getSolanaTokenInfo(connection, mint.address)
     if (tokenInfo) {

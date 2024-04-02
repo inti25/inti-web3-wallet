@@ -26,6 +26,8 @@ export class Token {
 
   balance: string;
 
+  tokenAccount: string;
+
   @ManyToOne(() => Network, (network) => network.tokens)
   network: Network
 }

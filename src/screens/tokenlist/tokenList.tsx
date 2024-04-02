@@ -2,13 +2,13 @@ import React, {useEffect, useState} from "react"
 import {Network} from "../../entities/network";
 import {Account} from "../../entities/account";
 import {Avatar, Button, Flex, Space, Table, TableProps} from "antd";
-import {ZeroAddress} from "ethers";
 import {getNativeTokenInfo, getSolanaSPLToken, getTokenBalance} from "../../utils/tokenUtils";
 import {formatCurrencyUSD} from "../../utils/formatUtil";
 import AddTokenModal from "../../modals/addTokenModal";
 import {DELETE_TOKEN_EVENT, GET_TOKENS_EVENT} from "../../utils/BridgeUtil";
 import {Token} from "../../entities/token";
 import {VMTYPE} from "../../utils/constains";
+import {formatUnits} from "ethers";
 
 
 const TokenList = (props: { network: Network, account: Account }) => {
@@ -37,7 +37,9 @@ const TokenList = (props: { network: Network, account: Account }) => {
       title: 'Balance',
       dataIndex: 'balance',
       align: 'right',
-      render: (text) => formatCurrencyUSD(text),
+      render: (_, record) => (
+        <>{formatCurrencyUSD(formatUnits(record.balance, record.decimal))}</>
+      )
     },
     {
       title: 'Action',
@@ -47,7 +49,7 @@ const TokenList = (props: { network: Network, account: Account }) => {
         <Space size={"middle"}>
           <Flex justify={"space-between"}>
             <Button type="link">Transfer</Button>
-            { record.address && <Button  type="text" onClick={() => {deleteToken(record)}} danger>Hide</Button>}
+            { record.address && props.network.vmType == VMTYPE.EVM && <Button  type="text" onClick={() => {deleteToken(record)}} danger>Hide</Button>}
           </Flex>
         </Space>
       ),
